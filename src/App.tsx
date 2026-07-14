@@ -90,7 +90,7 @@ export default function App() {
                   id: Date.now() + i,
                   mimeType: file.type,
                   data: base64Data,
-                  name: `Pasted_Image_${new Date().toLocaleTimeString().replace(/\s/g, "")}.png`,
+                  name: `Pasted_Image_${new Date().toLocaleTimeString()}.png`,
                 },
               ]);
             }
@@ -575,7 +575,7 @@ ${highlightsText}`;
 
           <hr className="border-slate-100" />
 
-          {/* Section B: Results Screenshots */}
+          {/* Section B: Results Screenshots (Multiple images dropzone + click-to-browse + paste anywhere) */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <span
@@ -665,7 +665,7 @@ ${highlightsText}`;
 
           <hr className="border-slate-100" />
 
-          {/* Section C: Source documents */}
+          {/* Section C: Source documents (Three named optional uploaders) */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <span
@@ -735,7 +735,7 @@ ${highlightsText}`;
 
           <hr className="border-slate-100" />
 
-          {/* Section D: Company logo */}
+          {/* Section D: Company logo (Small dropzone + armed mode) */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <span
@@ -902,7 +902,7 @@ ${highlightsText}`;
           {tableData && (
             <div className="space-y-6">
 
-              {/* Step Confirmation Bar */}
+              {/* Step Confirmation Bar (Yellow-tinted box) */}
               {step === 1 && (
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
                   <div>
@@ -910,7 +910,7 @@ ${highlightsText}`;
                       Step 1 Completed: Verify Table
                     </h4>
                     <p className="text-xs text-amber-800">
-                      Check every number below and fix anything the AI misread. Every cell is directly editable!
+                      Check every number above and fix anything the AI misread. Every cell is directly editable!
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -1130,22 +1130,22 @@ ${highlightsText}`;
                             isQoqFavorable === null
                               ? ""
                               : isQoqFavorable
-                              ? "bg-emerald-50 text-emerald-800 font-bold"
-                              : "bg-rose-50 text-rose-800 font-bold";
+                              ? "bg-emerald-50 text-emerald-800"
+                              : "bg-rose-50 text-rose-800";
 
                           const yoyColor =
                             isYoyFavorable === null
                               ? ""
                               : isYoyFavorable
-                              ? "bg-emerald-50 text-emerald-800 font-bold"
-                              : "bg-rose-50 text-rose-800 font-bold";
+                              ? "bg-emerald-50 text-emerald-800"
+                              : "bg-rose-50 text-rose-800";
 
                           return (
                             <tr
                               key={metric.id}
                               className="border-b border-black last:border-b-0 hover:bg-slate-50/50 transition group"
                             >
-                              {/* Label Column */}
+                              {/* Label Column with customizable ratio/direction badges */}
                               <td className="border-r border-black p-2 text-xs font-medium text-slate-900 flex justify-between items-center gap-2">
                                 {isCapturing ? (
                                   <span className="font-semibold">{metric.label}</span>
@@ -1161,190 +1161,238 @@ ${highlightsText}`;
                                     <input
                                       type="text"
                                       value={metric.label}
-                                      onChange={(e) => handleMetricChange(metric.id, "label", e.target.value)}
-                                      className="flex-1 bg-transparent border-none outline-none focus:bg-slate-100 rounded px-1 font-semibold truncate"
+                                      onChange={(e) =>
+                                        handleMetricChange(metric.id, "label", e.target.value)
+                                      }
+                                      className="flex-1 min-w-[120px] bg-transparent border-none outline-none font-semibold text-slate-800 focus:bg-slate-100 rounded px-1"
                                     />
-                                    {/* Action button toggles */}
-                                    <button
-                                      onClick={() => toggleMetricRatio(metric.id)}
-                                      className={`text-[9px] px-1.5 py-0.5 rounded shrink-0 transition ${
-                                        metric.is_ratio
-                                          ? "bg-amber-100 text-amber-800 font-bold"
-                                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                      }`}
-                                      title="Toggle Ratio / Margin Format"
-                                    >
-                                      {metric.is_ratio ? "%" : "#"}
-                                    </button>
-                                    <button
-                                      onClick={() => toggleMetricLowerIsBetter(metric.id)}
-                                      className={`text-[9px] px-1.5 py-0.5 rounded shrink-0 transition ${
-                                        metric.lower_is_better
-                                          ? "bg-purple-100 text-purple-800 font-bold"
-                                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                      }`}
-                                      title="Toggle Lower-Is-Better (e.g. NPAs)"
-                                    >
-                                      {metric.lower_is_better ? "↓ Better" : "↑ Better"}
-                                    </button>
+                                    {/* Small utility configuration badges */}
+                                    <div className="flex items-center gap-0.5 shrink-0 select-none">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleMetricRatio(metric.id)}
+                                        title={`Metric type: ${
+                                          metric.is_ratio ? "Percentage (%)" : "Currency (₹)"
+                                        }. Click to toggle.`}
+                                        className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
+                                          metric.is_ratio
+                                            ? "bg-purple-100 text-purple-800"
+                                            : "bg-blue-100 text-blue-800"
+                                        }`}
+                                      >
+                                        {metric.is_ratio ? "%" : "₹"}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleMetricLowerIsBetter(metric.id)}
+                                        title={`Move direction: ${
+                                          metric.lower_is_better ? "Lower is Better" : "Higher is Better"
+                                        }. Click to toggle.`}
+                                        className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
+                                          metric.lower_is_better
+                                            ? "bg-amber-100 text-amber-800"
+                                            : "bg-sky-100 text-sky-800"
+                                        }`}
+                                      >
+                                        {metric.lower_is_better ? "▼" : "▲"}
+                                      </button>
+                                    </div>
                                   </div>
                                 )}
                               </td>
 
-                              {/* Current */}
-                              <td className="border-r border-black p-1 text-center text-xs font-bold text-slate-900">
+                              {/* Current Value Column */}
+                              <td className="border-r border-black p-1 text-right text-xs font-bold w-[14%]">
                                 {isCapturing ? (
-                                  <span>
+                                  <span className="px-2 py-1 block">
                                     {metric.current !== null
-                                      ? metric.current.toFixed(metric.decimals) + (metric.is_ratio ? "%" : "")
+                                      ? metric.current.toFixed(metric.decimals)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
                                     type="text"
-                                    value={metric.current !== null ? metric.current : ""}
-                                    onChange={(e) => handleMetricChange(metric.id, "current", e.target.value)}
+                                    defaultValue={
+                                      metric.current === null ? "" : metric.current.toString()
+                                    }
+                                    onBlur={(e) =>
+                                      handleMetricChange(metric.id, "current", e.target.value)
+                                    }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none text-center outline-none font-bold focus:bg-slate-100 rounded"
+                                    className="w-full bg-transparent border-none outline-none text-right font-bold text-slate-950 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
 
-                              {/* Prev Q */}
-                              <td className="border-r border-black p-1 text-center text-xs font-medium text-slate-600">
+                              {/* Previous Quarter Value Column */}
+                              <td className="border-r border-black p-1 text-right text-xs font-semibold text-slate-600 w-[14%]">
                                 {isCapturing ? (
-                                  <span>
+                                  <span className="px-2 py-1 block">
                                     {metric.prev_q !== null
-                                      ? metric.prev_q.toFixed(metric.decimals) + (metric.is_ratio ? "%" : "")
+                                      ? metric.prev_q.toFixed(metric.decimals)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
                                     type="text"
-                                    value={metric.prev_q !== null ? metric.prev_q : ""}
-                                    onChange={(e) => handleMetricChange(metric.id, "prev_q", e.target.value)}
+                                    defaultValue={
+                                      metric.prev_q === null ? "" : metric.prev_q.toString()
+                                    }
+                                    onBlur={(e) =>
+                                      handleMetricChange(metric.id, "prev_q", e.target.value)
+                                    }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none text-center outline-none font-medium focus:bg-slate-100 rounded"
+                                    className="w-full bg-transparent border-none outline-none text-right font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
 
-                              {/* Prev Y */}
-                              <td className="border-r border-black p-1 text-center text-xs font-medium text-slate-600">
+                              {/* Previous Year Value Column */}
+                              <td className="border-r border-black p-1 text-right text-xs font-semibold text-slate-600 w-[14%]">
                                 {isCapturing ? (
-                                  <span>
+                                  <span className="px-2 py-1 block">
                                     {metric.prev_y !== null
-                                      ? metric.prev_y.toFixed(metric.decimals) + (metric.is_ratio ? "%" : "")
+                                      ? metric.prev_y.toFixed(metric.decimals)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
                                     type="text"
-                                    value={metric.prev_y !== null ? metric.prev_y : ""}
-                                    onChange={(e) => handleMetricChange(metric.id, "prev_y", e.target.value)}
+                                    defaultValue={
+                                      metric.prev_y === null ? "" : metric.prev_y.toString()
+                                    }
+                                    onBlur={(e) =>
+                                      handleMetricChange(metric.id, "prev_y", e.target.value)
+                                    }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none text-center outline-none font-medium focus:bg-slate-100 rounded"
+                                    className="w-full bg-transparent border-none outline-none text-right font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
 
-                              {/* QOQ change */}
-                              <td className={`border-r border-black p-2 text-center text-xs ${qoqColor}`}>
-                                {metric.is_ratio ? (
-                                  <span>
-                                    {qoq !== null ? `${qoq > 0 ? "+" : ""}${qoq.toFixed(2)} bps` : "-"}
-                                  </span>
-                                ) : (
-                                  <span>{formatChange(qoq, false)}</span>
-                                )}
+                              {/* QOQ computed Column */}
+                              <td className={`border-r border-black p-2 text-center text-xs font-bold ${qoqColor} w-[12%]`}>
+                                {formatChange(qoq, metric.is_ratio)}
                               </td>
 
-                              {/* YOY change */}
-                              <td className={`p-2 text-center text-xs ${yoyColor}`}>
-                                {metric.is_ratio ? (
-                                  <span>
-                                    {yoy !== null ? `${yoy > 0 ? "+" : ""}${yoy.toFixed(2)} bps` : "-"}
-                                  </span>
-                                ) : (
-                                  <span>{formatChange(yoy, false)}</span>
-                                )}
+                              {/* YOY computed Column */}
+                              <td className={`p-2 text-center text-xs font-bold ${yoyColor} w-[12%]`}>
+                                {formatChange(yoy, metric.is_ratio)}
                               </td>
                             </tr>
                           );
                         })}
-
-                        {/* Editable Add Metric Row (Hidden during screenshot capture) */}
-                        {!isCapturing && (
-                          <tr className="bg-slate-50 border-t border-slate-200">
-                            <td colSpan={6} className="p-2 text-left">
-                              <button
-                                onClick={addMetricRow}
-                                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-1"
-                              >
-                                <Plus size={14} /> Add Financial Metric Row
-                              </button>
-                            </td>
-                          </tr>
-                        )}
                       </tbody>
                     </table>
                   </div>
 
-                  {/* 4. Scorecard / hold statement footer band */}
-                  <div className="bg-slate-100 p-4 border-t border-black grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <div className="md:col-span-3 flex items-center gap-2.5">
-                      <div
-                        style={{ backgroundColor: colors.primary }}
-                        className="w-12 h-12 rounded-sm text-white flex flex-col items-center justify-center font-display shadow-xs transition-colors duration-300"
-                      >
-                        <span className="text-[9px] uppercase tracking-wider font-extrabold leading-none opacity-80 mt-1.5">
-                          Score
-                        </span>
-                        <span className="text-2xl font-black leading-none mb-1">{score}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
-                          TURTLE SCORE
-                        </span>
-                        <div className="text-xs font-black text-slate-800">
-                          {score === 1 ? "Under Review" : score === 2 ? "Hold/Neutral" : "High Confidence"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-9 text-xs font-bold text-slate-700 italic border-t md:border-t-0 md:border-l border-slate-300 pt-3 md:pt-0 md:pl-4 leading-relaxed">
-                      "{getHoldStatement(score, fund)}"
-                    </div>
-                  </div>
+                  {/* 5. Footer Band */}
+                  <div
+                    style={{ backgroundColor: colors.primary }}
+                    className="h-3 w-full transition-colors duration-300"
+                  />
                 </div>
 
-                {/* THE RESULT COMMENTARY HIGHLIGHTS BLOCK */}
-                {highlights.length > 0 && (
-                  <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <FileText className="text-slate-500" size={18} />
-                      <h3 className="text-sm font-display font-extrabold text-slate-800 uppercase tracking-wider">
-                        Key Business Highlights &amp; Commentary
-                      </h3>
+                {/* Append blank metric row action link (hidden during capture) */}
+                {!isCapturing && (
+                  <button
+                    onClick={addMetricRow}
+                    style={{ color: colors.primary }}
+                    className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-white py-1.5 px-3 rounded-lg border border-slate-200 w-fit"
+                  >
+                    <Plus size={12} />
+                    + Add a metric row
+                  </button>
+                )}
+
+                {/* THE RESULT COMMENTARY BLOCK */}
+                {(step === 2 || highlights.length > 0) && (
+                  <div
+                    style={{ borderLeftColor: colors.primary }}
+                    className="bg-white border-l-[6px] rounded-r-xl shadow-md p-6 space-y-4"
+                  >
+                    <h3 className="text-sm font-display font-bold text-slate-400 uppercase tracking-wider">
+                      Result Commentary
+                    </h3>
+
+                    {/* Meta Section */}
+                    <div>
+                      <div className="font-display font-extrabold text-base text-slate-800">
+                        {fund} – {tableData.company}
+                      </div>
+                      <div className="text-xs font-medium text-slate-500">{tableData.period}</div>
                     </div>
 
-                    <div className="space-y-4">
-                      {highlights.map((point, index) => (
-                        <div key={index} className="flex gap-3 items-start text-xs leading-relaxed text-slate-700">
-                          <span
-                            style={{ backgroundColor: colors.primary }}
-                            className="w-5 h-5 rounded-full text-white font-extrabold flex items-center justify-center shrink-0 mt-0.5 text-[10px]"
-                          >
-                            {index + 1}
-                          </span>
-                          <p className="flex-1">{point}</p>
-                        </div>
-                      ))}
+                    {/* Score / Action Row */}
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Turtle Score — {score} / 3
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700 mt-1">
+                        {getHoldStatement(score, fund)}
+                      </p>
                     </div>
 
-                    {/* Disclaimer Footer */}
-                    <div className="border-t border-slate-100 mt-6 pt-3 text-[10px] text-slate-400 italic">
-                      Disclaimer: This quarterly results commentary is prepared strictly for internal PMS advisory and client correspondence of Turtle Wealth. Under no circumstances should this be treated as absolute public investment solicitation.
+                    <hr className="border-slate-100" />
+
+                    {/* Key Business Highlights Subheading */}
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-display font-bold uppercase tracking-wider text-slate-500">
+                        Key Business Highlights
+                      </h4>
+
+                      {/* Highlight Points List */}
+                      <ul className="space-y-3 pl-1">
+                        {highlights.map((point, index) => (
+                          <li key={index} className="flex gap-2.5 items-start group">
+                            <span
+                              style={{ color: colors.primary }}
+                              className="text-xs font-extrabold shrink-0 mt-0.5"
+                            >
+                              •
+                            </span>
+                            {isCapturing ? (
+                              <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                                {point}
+                              </p>
+                            ) : (
+                              <div className="flex-1 flex gap-2 items-start">
+                                <textarea
+                                  value={point}
+                                  onChange={(e) => {
+                                    const updated = [...highlights];
+                                    updated[index] = e.target.value;
+                                    setHighlights(updated);
+                                  }}
+                                  className="flex-1 text-xs text-slate-700 leading-relaxed font-medium bg-transparent border-none focus:bg-slate-50 p-1.5 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-slate-200"
+                                  rows={2}
+                                />
+                                <button
+                                  onClick={() =>
+                                    setHighlights((prev) => prev.filter((_, idx) => idx !== index))
+                                  }
+                                  className="text-red-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100 shrink-0 self-center"
+                                  title="Remove point"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* Add highlights point link */}
+                      {!isCapturing && (
+                        <button
+                          onClick={() => setHighlights((prev) => [...prev, "New Highlight Point"])}
+                          style={{ color: colors.primary }}
+                          className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-slate-50 py-1.5 px-3 rounded-lg border border-slate-100 w-fit"
+                        >
+                          <Plus size={12} />
+                          + Add a highlight point
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1357,19 +1405,6 @@ ${highlightsText}`;
         </div>
 
       </div>
-
-      {/* global loader backdrop */}
-      {loading && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white z-50">
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 shadow-2xl flex flex-col items-center gap-4 text-center max-w-sm">
-            <Loader2 className="animate-spin text-emerald-400" size={32} />
-            <div>
-              <p className="font-display font-extrabold text-sm">{loadingMessage}</p>
-              <p className="text-[10px] text-slate-400 mt-1">Please do not close this tab or interrupt the process.</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

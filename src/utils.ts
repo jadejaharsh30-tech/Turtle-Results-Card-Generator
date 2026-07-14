@@ -1,3 +1,5 @@
+import { Metric } from "./types";
+
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -19,7 +21,7 @@ export const computeChange = (current: number | null, prev: number | null, isRat
   }
 };
 
-export const formatChange = (change: number | null, _isRatio: boolean): string => {
+export const formatChange = (change: number | null, isRatio: boolean): string => {
   if (change === null) return "-";
   const prefix = change > 0 ? "+" : "";
   return `${prefix}${change.toFixed(2)}%`;
