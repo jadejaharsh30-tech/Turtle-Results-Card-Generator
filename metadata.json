@@ -1,0 +1,6 @@
+{
+  "name": "Turtle ResultsCard",
+  "description": "An interactive quarterly results card builder and commentary generator for Turtle Wealth.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
