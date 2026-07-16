@@ -180,8 +180,99 @@ export default function App() {
           is_ratio: !!m.is_ratio,
           lower_is_better: !!m.lower_is_better,
           decimals: 2,
+          is_merged: !!m.is_merged || (m.label && m.label.toLowerCase().includes("dividend")),
+          merged_value: m.merged_value !== undefined ? m.merged_value : "",
         })
       );
+
+      // Post-process to guarantee the three compulsory metrics: Revenue from Operations, Profit, EBITDA Margin
+      const finalMetrics: Metric[] = [...mappedMetrics];
+
+      const hasRevenue = finalMetrics.some((m) => {
+        const l = m.label.toLowerCase();
+        return l.includes("revenue") || l.includes("income") || l.includes("sales") || l.includes("nii");
+      });
+      const hasProfit = finalMetrics.some((m) => {
+        const l = m.label.toLowerCase();
+        return l.includes("profit") || l.includes("pat") || l.includes("net profit");
+      });
+      const hasEbitdaMargin = finalMetrics.some((m) => {
+        const l = m.label.toLowerCase();
+        return l.includes("ebitda margin") || l.includes("operating margin") || l.includes("opm");
+      });
+
+      if (!hasRevenue) {
+        finalMetrics.unshift({
+          id: `metric_comp_rev_${Date.now()}`,
+          label: "Revenue from Operations",
+          current: null,
+          prev_q: null,
+          prev_y: null,
+          is_ratio: false,
+          lower_is_better: false,
+          decimals: 2,
+        });
+      } else {
+        const revIdx = finalMetrics.findIndex((m) => {
+          const l = m.label.toLowerCase();
+          return l.includes("revenue") || l.includes("income") || l.includes("sales") || l.includes("nii");
+        });
+        if (revIdx !== -1) {
+          const l = finalMetrics[revIdx].label.toLowerCase();
+          if (l.includes("nii") || l.includes("net interest income")) {
+            finalMetrics[revIdx].label = "Net Interest Income (NII)";
+          } else {
+            finalMetrics[revIdx].label = "Revenue from Operations";
+          }
+        }
+      }
+
+      if (!hasProfit) {
+        // Insert after revenue
+        const revIdx = finalMetrics.findIndex(m => m.label === "Revenue from Operations" || m.label === "Net Interest Income (NII)");
+        const insertIdx = revIdx !== -1 ? revIdx + 1 : 1;
+        finalMetrics.splice(insertIdx, 0, {
+          id: `metric_comp_prof_${Date.now()}`,
+          label: "Profit",
+          current: null,
+          prev_q: null,
+          prev_y: null,
+          is_ratio: false,
+          lower_is_better: false,
+          decimals: 2,
+        });
+      } else {
+        const profIdx = finalMetrics.findIndex((m) => {
+          const l = m.label.toLowerCase();
+          return l.includes("profit") || l.includes("pat") || l.includes("net profit");
+        });
+        if (profIdx !== -1) {
+          finalMetrics[profIdx].label = "Profit";
+        }
+      }
+
+      if (!hasEbitdaMargin) {
+        // Insert EBITDA Margin
+        finalMetrics.push({
+          id: `metric_comp_ebitda_${Date.now()}`,
+          label: "EBITDA Margin",
+          current: null,
+          prev_q: null,
+          prev_y: null,
+          is_ratio: true,
+          lower_is_better: false,
+          decimals: 2,
+        });
+      } else {
+        const ebitdaIdx = finalMetrics.findIndex((m) => {
+          const l = m.label.toLowerCase();
+          return l.includes("ebitda margin") || l.includes("operating margin") || l.includes("opm");
+        });
+        if (ebitdaIdx !== -1) {
+          finalMetrics[ebitdaIdx].label = "EBITDA Margin";
+          finalMetrics[ebitdaIdx].is_ratio = true;
+        }
+      }
 
       setTableData({
         company: data.company || companyOverride || "Listed Company",
@@ -190,7 +281,7 @@ export default function App() {
         col_current: data.col_current || "Current Period",
         col_prev_q: data.col_prev_q || "Previous Quarter",
         col_prev_y: data.col_prev_y || "Previous Year",
-        metrics: mappedMetrics,
+        metrics: finalMetrics,
       });
 
       setStep(1); // Set step 1 output
@@ -254,7 +345,7 @@ export default function App() {
   // Modify individual metric cell
   const handleMetricChange = (
     id: string,
-    field: "label" | "current" | "prev_q" | "prev_y",
+    field: "label" | "current" | "prev_q" | "prev_y" | "merged_value",
     valString: string
   ) => {
     if (!tableData) return;
@@ -263,7 +354,19 @@ export default function App() {
       if (m.id !== id) return m;
 
       if (field === "label") {
-        return { ...m, label: valString };
+        const nextIsMerged = valString.toLowerCase().includes("dividend");
+        return {
+          ...m,
+          label: valString,
+          is_merged: nextIsMerged,
+          merged_value: nextIsMerged ? (m.merged_value || "No Dividend Declared") : undefined,
+        };
+      } else if (field === "merged_value") {
+        return {
+          ...m,
+          is_merged: true,
+          merged_value: valString,
+        };
       } else {
         const clean = valString.trim();
         const parsed = clean === "" ? null : parseFloat(clean);
@@ -323,6 +426,26 @@ export default function App() {
       is_ratio: false,
       lower_is_better: false,
       decimals: 2,
+    };
+    setTableData({
+      ...tableData,
+      metrics: [...tableData.metrics, newMetric],
+    });
+  };
+
+  const addDividendRow = () => {
+    if (!tableData) return;
+    const newMetric: Metric = {
+      id: `metric_added_${Date.now()}`,
+      label: "Dividend",
+      current: null,
+      prev_q: null,
+      prev_y: null,
+      is_ratio: false,
+      lower_is_better: false,
+      decimals: 2,
+      is_merged: true,
+      merged_value: "No Dividend Declared",
     };
     setTableData({
       ...tableData,
@@ -1351,7 +1474,7 @@ ${highlightsText}`;
                                         <ChevronDown size={11} />
                                       </button>
                                     </div>
-
+ 
                                     <button
                                       onClick={() => deleteMetricRow(metric.id)}
                                       className="text-red-400 hover:text-red-600 transition opacity-0 group-hover/row:opacity-100 shrink-0"
@@ -1368,121 +1491,145 @@ ${highlightsText}`;
                                       className="flex-1 min-w-[120px] bg-transparent border-none outline-none font-semibold text-slate-800 focus:bg-slate-100 rounded px-1"
                                     />
                                     {/* Small utility configuration badges */}
-                                    <div className="flex items-center gap-0.5 shrink-0 select-none">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleMetricRatio(metric.id)}
-                                        title={`Metric type: ${
-                                          metric.is_ratio ? "Percentage (%)" : "Currency (₹)"
-                                        }. Click to toggle.`}
-                                        className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
-                                          metric.is_ratio
-                                            ? "bg-purple-100 text-purple-800"
-                                            : "bg-blue-100 text-blue-800"
-                                        }`}
-                                      >
-                                        {metric.is_ratio ? "%" : "₹"}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleMetricLowerIsBetter(metric.id)}
-                                        title={`Move direction: ${
-                                          metric.lower_is_better ? "Lower is Better" : "Higher is Better"
-                                        }. Click to toggle.`}
-                                        className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
-                                          metric.lower_is_better
-                                            ? "bg-amber-100 text-amber-800"
-                                            : "bg-sky-100 text-sky-800"
-                                        }`}
-                                      >
-                                        {metric.lower_is_better ? "▼" : "▲"}
-                                      </button>
-                                    </div>
+                                    {!metric.is_merged && (
+                                      <div className="flex items-center gap-0.5 shrink-0 select-none">
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleMetricRatio(metric.id)}
+                                          title={`Metric type: ${
+                                            metric.is_ratio ? "Percentage (%)" : "Currency (₹)"
+                                          }. Click to toggle.`}
+                                          className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
+                                            metric.is_ratio
+                                              ? "bg-purple-100 text-purple-800"
+                                              : "bg-blue-100 text-blue-800"
+                                          }`}
+                                        >
+                                          {metric.is_ratio ? "%" : "₹"}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleMetricLowerIsBetter(metric.id)}
+                                          title={`Move direction: ${
+                                            metric.lower_is_better ? "Lower is Better" : "Higher is Better"
+                                          }. Click to toggle.`}
+                                          className={`w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center transition-colors ${
+                                            metric.lower_is_better
+                                              ? "bg-amber-100 text-amber-800"
+                                              : "bg-sky-100 text-sky-800"
+                                          }`}
+                                        >
+                                          {metric.lower_is_better ? "▼" : "▲"}
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </td>
-
-                              {/* Current Value Column */}
-                              <td className="border-r border-black p-1 text-center text-xs font-bold w-[14%]">
-                                {isCapturing ? (
-                                  <span className="px-2 py-1 block">
-                                    {metric.current !== null
-                                      ? metric.current.toFixed(2)
-                                      : "-"}
-                                  </span>
-                                ) : (
-                                  <input
-                                    key={`${metric.id}_current_${metric.current}`}
-                                    type="text"
-                                    defaultValue={
-                                      metric.current === null ? "" : metric.current.toFixed(2)
-                                    }
-                                    onBlur={(e) =>
-                                      handleMetricChange(metric.id, "current", e.target.value)
-                                    }
-                                    placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-center font-bold text-slate-950 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
-                                  />
-                                )}
-                              </td>
-
-                              {/* Previous Quarter Value Column */}
-                              <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
-                                {isCapturing ? (
-                                  <span className="px-2 py-1 block">
-                                    {metric.prev_q !== null
-                                      ? metric.prev_q.toFixed(2)
-                                      : "-"}
-                                  </span>
-                                ) : (
-                                  <input
-                                    key={`${metric.id}_prev_q_${metric.prev_q}`}
-                                    type="text"
-                                    defaultValue={
-                                      metric.prev_q === null ? "" : metric.prev_q.toFixed(2)
-                                    }
-                                    onBlur={(e) =>
-                                      handleMetricChange(metric.id, "prev_q", e.target.value)
-                                    }
-                                    placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
-                                  />
-                                )}
-                              </td>
-
-                              {/* Previous Year Value Column */}
-                              <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
-                                {isCapturing ? (
-                                  <span className="px-2 py-1 block">
-                                    {metric.prev_y !== null
-                                      ? metric.prev_y.toFixed(2)
-                                      : "-"}
-                                  </span>
-                                ) : (
-                                  <input
-                                    key={`${metric.id}_prev_y_${metric.prev_y}`}
-                                    type="text"
-                                    defaultValue={
-                                      metric.prev_y === null ? "" : metric.prev_y.toFixed(2)
-                                    }
-                                    onBlur={(e) =>
-                                      handleMetricChange(metric.id, "prev_y", e.target.value)
-                                    }
-                                    placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
-                                  />
-                                )}
-                              </td>
-
-                              {/* QOQ computed Column */}
-                              <td className={`border-r border-black p-2 text-center text-xs font-bold ${qoqColor} w-[12%]`}>
-                                {formatChange(qoq, metric.is_ratio)}
-                              </td>
-
-                              {/* YOY computed Column */}
-                              <td className={`p-2 text-center text-xs font-bold ${yoyColor} w-[12%]`}>
-                                {formatChange(yoy, metric.is_ratio)}
-                              </td>
+ 
+                              {metric.is_merged ? (
+                                <td colSpan={5} className="p-1 text-center text-xs font-semibold text-slate-700 bg-amber-50/10">
+                                  {isCapturing ? (
+                                    <span className="px-2 py-1 block text-center font-extrabold text-slate-900">
+                                      {metric.merged_value || "-"}
+                                    </span>
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      value={metric.merged_value || ""}
+                                      onChange={(e) =>
+                                        handleMetricChange(metric.id, "merged_value", e.target.value)
+                                      }
+                                      placeholder="Enter dividend description / paid value..."
+                                      className="w-full bg-transparent border-none outline-none text-center font-extrabold text-slate-900 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                    />
+                                  )}
+                                </td>
+                              ) : (
+                                <>
+                                  {/* Current Value Column */}
+                                  <td className="border-r border-black p-1 text-center text-xs font-bold w-[14%]">
+                                    {isCapturing ? (
+                                      <span className="px-2 py-1 block">
+                                        {metric.current !== null
+                                          ? metric.current.toFixed(2)
+                                          : "-"}
+                                      </span>
+                                    ) : (
+                                      <input
+                                        key={`${metric.id}_current_${metric.current}`}
+                                        type="text"
+                                        defaultValue={
+                                          metric.current === null ? "" : metric.current.toFixed(2)
+                                        }
+                                        onBlur={(e) =>
+                                          handleMetricChange(metric.id, "current", e.target.value)
+                                        }
+                                        placeholder="-"
+                                        className="w-full bg-transparent border-none outline-none text-center font-bold text-slate-950 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                      />
+                                    )}
+                                  </td>
+ 
+                                  {/* Previous Quarter Value Column */}
+                                  <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
+                                    {isCapturing ? (
+                                      <span className="px-2 py-1 block">
+                                        {metric.prev_q !== null
+                                          ? metric.prev_q.toFixed(2)
+                                          : "-"}
+                                      </span>
+                                    ) : (
+                                      <input
+                                        key={`${metric.id}_prev_q_${metric.prev_q}`}
+                                        type="text"
+                                        defaultValue={
+                                          metric.prev_q === null ? "" : metric.prev_q.toFixed(2)
+                                        }
+                                        onBlur={(e) =>
+                                          handleMetricChange(metric.id, "prev_q", e.target.value)
+                                        }
+                                        placeholder="-"
+                                        className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                      />
+                                    )}
+                                  </td>
+ 
+                                  {/* Previous Year Value Column */}
+                                  <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
+                                    {isCapturing ? (
+                                      <span className="px-2 py-1 block">
+                                        {metric.prev_y !== null
+                                          ? metric.prev_y.toFixed(2)
+                                          : "-"}
+                                      </span>
+                                    ) : (
+                                      <input
+                                        key={`${metric.id}_prev_y_${metric.prev_y}`}
+                                        type="text"
+                                        defaultValue={
+                                          metric.prev_y === null ? "" : metric.prev_y.toFixed(2)
+                                        }
+                                        onBlur={(e) =>
+                                          handleMetricChange(metric.id, "prev_y", e.target.value)
+                                        }
+                                        placeholder="-"
+                                        className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                      />
+                                    )}
+                                  </td>
+ 
+                                  {/* QOQ computed Column */}
+                                  <td className={`border-r border-black p-2 text-center text-xs font-bold ${qoqColor} w-[12%]`}>
+                                    {formatChange(qoq, metric.is_ratio)}
+                                  </td>
+ 
+                                  {/* YOY computed Column */}
+                                  <td className={`p-2 text-center text-xs font-bold ${yoyColor} w-[12%]`}>
+                                    {formatChange(yoy, metric.is_ratio)}
+                                  </td>
+                                </>
+                              )}
                             </tr>
                           );
                         })}
@@ -1514,17 +1661,26 @@ ${highlightsText}`;
                   />
                 </div>
 
-                {/* Append blank metric row action link (hidden during capture) */}
-                {!isCapturing && (
-                  <button
-                    onClick={addMetricRow}
-                    style={{ color: colors.primary }}
-                    className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-white py-1.5 px-3 rounded-lg border border-slate-200 w-fit"
-                  >
-                    <Plus size={12} />
-                    + Add a metric row
-                  </button>
-                )}
+                 {/* Append blank metric row action links (hidden during capture) */}
+                 {!isCapturing && (
+                   <div className="flex flex-wrap gap-2">
+                     <button
+                       onClick={addMetricRow}
+                       style={{ color: colors.primary }}
+                       className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-white py-1.5 px-3 rounded-lg border border-slate-200 w-fit"
+                     >
+                       <Plus size={12} />
+                       + Add standard row
+                     </button>
+                     <button
+                       onClick={addDividendRow}
+                       className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-amber-50 hover:bg-amber-100 text-amber-800 py-1.5 px-3 rounded-lg border border-amber-200 w-fit"
+                     >
+                       <Plus size={12} />
+                       + Add dividend row (merged)
+                     </button>
+                   </div>
+                 )}
 
                 {/* THE RESULT COMMENTARY BLOCK */}
                 {(step === 2 || highlights.length > 0) && (

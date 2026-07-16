@@ -107,13 +107,23 @@ Multiple screenshots/documents might contain the same tables, or overlapping inf
     systemInstruction += `
 Guidelines for metric extraction:
 1. Extract consolidated headline financial metrics reported in the documents. 
-2. Metrics typically include: Revenue from Operations (or Net Interest Income (NII) for banks), Operating Profit / EBITDA, Profit Before Tax (PBT), Net Profit / Profit After Tax (PAT), Margins (Operating/EBITDA Margin %, Net Margin %), and for banks, Gross NPA % and Net NPA %.
-3. All values should be plain numbers. Strip commas, currency symbols, and percent signs.
-4. For ratios and percentage metrics (e.g. NPA ratios, margins), set "is_ratio" to true, and set "decimals" to 2.
-5. If a metric is a ratio where a lower value is better (like Gross NPA %, Net NPA %, Cost-to-Income %, Debt-to-Equity), set "lower_is_better" to true. For general revenue, profit, margins, set "lower_is_better" to false.
-6. For non-percentage rupee metrics, set "is_ratio" to false, and set "decimals" to 0.
-7. If a value is not available in a column (e.g., previous quarter was not reported), use null.
-8. NEVER invent or hallucinate figures. If a metric is missing, use null or omit it.
+2. COMPULSORY METRICS: You MUST extract/include at least these three metrics:
+   - "Revenue from Operations" (or "Net Interest Income (NII)" if the company is a bank/financial institution)
+   - "Profit" (Net Profit / PAT)
+   - "EBITDA Margin" (Operating Margin %)
+   Please ensure they are named exactly "Revenue from Operations" (or "Net Interest Income (NII)"), "Profit", and "EBITDA Margin".
+3. DIVIDEND EXTRACTION: Scan carefully for any DIVIDEND declared, recommended, or paid for this quarter/period.
+   If a dividend is paid or declared, you MUST include a line item with:
+   - "label": "Dividend"
+   - "is_merged": true
+   - "merged_value": The full description/amount of the dividend declared or paid (e.g., "Interim dividend of ₹ 2.50 per equity share (125%) for FY24" or "Final Dividend of ₹ 5 / share declared").
+   If no dividend is paid or mentioned, do NOT include this line item.
+4. All standard metric values (except Dividend/merged items) should be plain numbers. Strip commas, currency symbols, and percent signs.
+5. For ratios and percentage metrics (e.g. NPA ratios, margins), set "is_ratio" to true, and set "decimals" to 2.
+6. If a metric is a ratio where a lower value is better (like Gross NPA %, Net NPA %, Cost-to-Income %, Debt-to-Equity), set "lower_is_better" to true. For general revenue, profit, margins, set "lower_is_better" to false.
+7. For non-percentage rupee metrics, set "is_ratio" to false, and set "decimals" to 0.
+8. If a value is not available in a column (e.g., previous quarter was not reported), use null.
+9. NEVER invent or hallucinate figures. If a metric is missing, use null or omit it.
 
 Respond strictly in JSON matching the specified schema. No markdown fences, no wrapping, just raw JSON.`;
 
@@ -187,6 +197,14 @@ Respond strictly in JSON matching the specified schema. No markdown fences, no w
                   decimals: {
                     type: Type.INTEGER,
                     description: "Decimals to format: usually 0 for large currency numbers, 2 for ratios."
+                  },
+                  is_merged: {
+                    type: Type.BOOLEAN,
+                    description: "True if this is a merged cell (like for dividend details) stretching along the whole table breadth."
+                  },
+                  merged_value: {
+                    type: Type.STRING,
+                    description: "Descriptive string value for the merged row (e.g. details of the dividend paid/declared)."
                   }
                 },
                 required: ["label", "is_ratio", "lower_is_better", "decimals"],

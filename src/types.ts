@@ -7,6 +7,8 @@ export interface Metric {
   is_ratio: boolean;
   lower_is_better: boolean;
   decimals: number;
+  is_merged?: boolean;
+  merged_value?: string;
 }
 
 export interface TableData {
