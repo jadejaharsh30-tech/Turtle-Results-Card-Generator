@@ -39,9 +39,11 @@ export default function App() {
     pressRelease: { file: null, text: "" },
   });
 
-  // D. Company logo
+  // D. Company & Turtle Wealth logos
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [logoPasteModeArmed, setLogoPasteModeArmed] = useState(false);
+  const [turtleLogo, setTurtleLogo] = useState<string | null>(null);
+  const [turtleLogoPasteModeArmed, setTurtleLogoPasteModeArmed] = useState(false);
 
   // App flow states
   const [step, setStep] = useState<1 | 2>(1);
@@ -60,6 +62,7 @@ export default function App() {
   // File input refs
   const screenshotInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const turtleLogoInputRef = useRef<HTMLInputElement>(null);
 
   const colors = getThemeColors(fund);
 
@@ -83,6 +86,9 @@ export default function App() {
             if (logoPasteModeArmed) {
               setCompanyLogo(base64Data);
               setLogoPasteModeArmed(false);
+            } else if (turtleLogoPasteModeArmed) {
+              setTurtleLogo(base64Data);
+              setTurtleLogoPasteModeArmed(false);
             } else {
               setResultsScreenshots((prev) => [
                 ...prev,
@@ -105,7 +111,7 @@ export default function App() {
     return () => {
       window.removeEventListener("paste", handleGlobalPaste);
     };
-  }, [logoPasteModeArmed]);
+  }, [logoPasteModeArmed, turtleLogoPasteModeArmed]);
 
   // Handle Drag & Drop for screenshots
   const handleScreenshotDrop = async (e: React.DragEvent) => {
@@ -170,7 +176,7 @@ export default function App() {
           prev_y: m.prev_y !== undefined ? m.prev_y : null,
           is_ratio: !!m.is_ratio,
           lower_is_better: !!m.lower_is_better,
-          decimals: m.decimals !== undefined ? m.decimals : m.is_ratio ? 2 : 0,
+          decimals: 2,
         })
       );
 
@@ -267,7 +273,7 @@ export default function App() {
         return {
           ...m,
           is_ratio: nextIsRatio,
-          decimals: nextIsRatio ? 2 : 0,
+          decimals: 2,
         };
       }),
     });
@@ -302,7 +308,7 @@ export default function App() {
       prev_y: null,
       is_ratio: false,
       lower_is_better: false,
-      decimals: 0,
+      decimals: 2,
     };
     setTableData({
       ...tableData,
@@ -735,8 +741,8 @@ ${highlightsText}`;
 
           <hr className="border-slate-100" />
 
-          {/* Section D: Company logo (Small dropzone + armed mode) */}
-          <div className="flex flex-col gap-3">
+          {/* Section D: Logos Setup (Optional) */}
+          <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <span
                 style={{ backgroundColor: colors.primary }}
@@ -745,73 +751,143 @@ ${highlightsText}`;
                 4
               </span>
               <h2 className="text-sm font-display font-bold uppercase tracking-wider text-slate-700">
-                Company Logo (Optional)
+                Logos Setup (Optional)
               </h2>
             </div>
 
-            <div className="flex gap-4 items-center">
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={async (e) => {
-                  e.preventDefault();
-                  const files = Array.from(e.dataTransfer.files) as File[];
-                  if (files[0] && files[0].type.startsWith("image/")) {
-                    const base64 = await fileToBase64(files[0]);
-                    setCompanyLogo(base64);
-                  }
-                }}
-                onClick={() => logoInputRef.current?.click()}
-                className={`w-16 h-16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition ${
-                  companyLogo ? "border-emerald-500" : "border-slate-200 hover:border-slate-400"
-                }`}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={logoInputRef}
-                  onChange={async (e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const base64 = await fileToBase64(e.target.files[0]);
-                      setCompanyLogo(base64);
-                    }
-                  }}
-                  className="hidden"
-                />
-                {companyLogo ? (
-                  <img src={companyLogo} alt="Logo" className="w-full h-full object-contain p-1" />
-                ) : (
-                  <ImageIcon className="text-slate-400" size={16} />
-                )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Turtle Wealth Logo */}
+              <div className="border border-slate-100 rounded-lg p-3 bg-slate-50/50 flex flex-col gap-2">
+                <span className="text-[11px] font-bold text-slate-600">Turtle Wealth Logo</span>
+                <div className="flex gap-2 items-center">
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      const files = Array.from(e.dataTransfer.files) as File[];
+                      if (files[0] && files[0].type.startsWith("image/")) {
+                        const base64 = await fileToBase64(files[0]);
+                        setTurtleLogo(base64);
+                      }
+                    }}
+                    onClick={() => turtleLogoInputRef.current?.click()}
+                    className={`w-12 h-12 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition shrink-0 bg-white ${
+                      turtleLogo ? "border-emerald-500" : "border-slate-200 hover:border-slate-400"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={turtleLogoInputRef}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const base64 = await fileToBase64(e.target.files[0]);
+                          setTurtleLogo(base64);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    {turtleLogo ? (
+                      <img src={turtleLogo} alt="Turtle Logo" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <ImageIcon className="text-slate-400" size={14} />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTurtleLogoPasteModeArmed(!turtleLogoPasteModeArmed);
+                        setLogoPasteModeArmed(false);
+                      }}
+                      style={{
+                        borderColor: turtleLogoPasteModeArmed ? "#f59e0b" : "transparent",
+                        backgroundColor: turtleLogoPasteModeArmed ? "#fef3c7" : "#f1f5f9",
+                        color: turtleLogoPasteModeArmed ? "#b45309" : "#475569",
+                      }}
+                      className="w-full py-1 text-[10px] font-bold rounded border flex items-center justify-center gap-1 transition duration-200"
+                    >
+                      {turtleLogoPasteModeArmed ? "Pasting..." : "Arm Paste"}
+                    </button>
+                    {turtleLogo && (
+                      <button
+                        type="button"
+                        onClick={() => setTurtleLogo(null)}
+                        className="text-red-500 hover:text-red-700 text-[9px] font-bold mt-1 block"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => setLogoPasteModeArmed(!logoPasteModeArmed)}
-                  style={{
-                    borderColor: logoPasteModeArmed ? "#f59e0b" : "transparent",
-                    backgroundColor: logoPasteModeArmed ? "#fef3c7" : "#f1f5f9",
-                    color: logoPasteModeArmed ? "#b45309" : "#475569",
-                  }}
-                  className={`w-full py-2 text-xs font-bold rounded-lg border flex items-center justify-center gap-1.5 transition duration-200`}
-                >
-                  {logoPasteModeArmed ? (
-                    <>
-                      <Loader2 size={12} className="animate-spin" />
-                      Paste Mode Active (Ctrl+V Logo)
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={12} />
-                      Arm Logo Paste Mode
-                    </>
-                  )}
-                </button>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  {companyLogo
-                    ? "Logo uploaded. Drag & drop another to replace."
-                    : "Arm paste mode, then press Ctrl+V to paste an image for the company logo slot."}
-                </p>
+              {/* Company Logo */}
+              <div className="border border-slate-100 rounded-lg p-3 bg-slate-50/50 flex flex-col gap-2">
+                <span className="text-[11px] font-bold text-slate-600">Company Logo</span>
+                <div className="flex gap-2 items-center">
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      const files = Array.from(e.dataTransfer.files) as File[];
+                      if (files[0] && files[0].type.startsWith("image/")) {
+                        const base64 = await fileToBase64(files[0]);
+                        setCompanyLogo(base64);
+                      }
+                    }}
+                    onClick={() => logoInputRef.current?.click()}
+                    className={`w-12 h-12 rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition shrink-0 bg-white ${
+                      companyLogo ? "border-emerald-500" : "border-slate-200 hover:border-slate-400"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={logoInputRef}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const base64 = await fileToBase64(e.target.files[0]);
+                          setCompanyLogo(base64);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    {companyLogo ? (
+                      <img src={companyLogo} alt="Company Logo" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <ImageIcon className="text-slate-400" size={14} />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLogoPasteModeArmed(!logoPasteModeArmed);
+                        setTurtleLogoPasteModeArmed(false);
+                      }}
+                      style={{
+                        borderColor: logoPasteModeArmed ? "#f59e0b" : "transparent",
+                        backgroundColor: logoPasteModeArmed ? "#fef3c7" : "#f1f5f9",
+                        color: logoPasteModeArmed ? "#b45309" : "#475569",
+                      }}
+                      className="w-full py-1 text-[10px] font-bold rounded border flex items-center justify-center gap-1 transition duration-200"
+                    >
+                      {logoPasteModeArmed ? "Pasting..." : "Arm Paste"}
+                    </button>
+                    {companyLogo && (
+                      <button
+                        type="button"
+                        onClick={() => setCompanyLogo(null)}
+                        className="text-red-500 hover:text-red-700 text-[9px] font-bold mt-1 block"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -988,28 +1064,78 @@ ${highlightsText}`;
                   style={{ borderColor: colors.primary }}
                   className="bg-white border-[4px] rounded-sm shadow-md overflow-hidden transition-colors duration-300 w-full"
                 >
-                  
                   {/* 1. Logo Row */}
                   <div className="p-4 flex justify-between items-end bg-white border-b border-slate-100">
-                    <div>
-                      {/* Brand Logo Wordmark */}
-                      <div className="font-display font-extrabold text-2xl tracking-tight text-slate-800 select-none">
-                        T<span style={{ color: colors.primary }} className="transition-colors duration-300">u</span>rtle<span className="font-light italic text-slate-500">wealth</span>™
-                      </div>
-                      <div className="text-[10px] text-slate-400 italic font-medium tracking-widest pl-0.5">
-                        beyond profits…
-                      </div>
+                    <div className="h-10 flex items-center">
+                      {/* Brand Logo Wordmark or pasted Turtle Wealth logo */}
+                      {turtleLogo ? (
+                        <div className="relative group/logo h-full">
+                          <img src={turtleLogo} alt="Turtle Wealth" className="h-full object-contain max-w-[150px]" />
+                          {!isCapturing && (
+                            <button
+                              onClick={() => setTurtleLogo(null)}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/logo:opacity-100 transition duration-150"
+                              title="Remove logo"
+                            >
+                              <X size={8} />
+                            </button>
+                          )}
+                        </div>
+                      ) : isCapturing ? (
+                        <div>
+                          <div className="font-display font-extrabold text-2xl tracking-tight text-slate-800 select-none">
+                            T<span style={{ color: colors.primary }} className="transition-colors duration-300">u</span>rtle<span className="font-light italic text-slate-500">wealth</span>™
+                          </div>
+                          <div className="text-[10px] text-slate-400 italic font-medium tracking-widest pl-0.5">
+                            beyond profits…
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setTurtleLogoPasteModeArmed(!turtleLogoPasteModeArmed);
+                            setLogoPasteModeArmed(false);
+                          }}
+                          className={`group/btn h-full flex flex-col justify-center text-left ${
+                            turtleLogoPasteModeArmed ? "bg-amber-50 px-2 rounded border border-amber-200 animate-pulse" : ""
+                          }`}
+                        >
+                          <div className="font-display font-extrabold text-2xl tracking-tight text-slate-800 select-none">
+                            T<span style={{ color: colors.primary }} className="transition-colors duration-300">u</span>rtle<span className="font-light italic text-slate-500">wealth</span>™
+                          </div>
+                          <div className="text-[10px] text-slate-400 italic font-medium tracking-widest pl-0.5 flex justify-between">
+                            <span>beyond profits…</span>
+                            <span className="text-amber-600 font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity pl-2 text-[9px]">
+                              {turtleLogoPasteModeArmed ? "⚡ Paste Now" : "• Click to Paste Logo"}
+                            </span>
+                          </div>
+                        </button>
+                      )}
                     </div>
 
                     {/* Logo area */}
                     <div className="h-10">
                       {companyLogo ? (
-                        <img src={companyLogo} alt="Logo" className="h-full object-contain max-w-[120px]" />
+                        <div className="relative group/companyLogo h-full">
+                          <img src={companyLogo} alt="Logo" className="h-full object-contain max-w-[120px]" />
+                          {!isCapturing && (
+                            <button
+                              onClick={() => setCompanyLogo(null)}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/companyLogo:opacity-100 transition duration-150"
+                              title="Remove logo"
+                            >
+                              <X size={8} />
+                            </button>
+                          )}
+                        </div>
                       ) : isCapturing ? (
                         <div className="h-full" />
                       ) : (
                         <button
-                          onClick={() => setLogoPasteModeArmed(true)}
+                          onClick={() => {
+                            setLogoPasteModeArmed(!logoPasteModeArmed);
+                            setTurtleLogoPasteModeArmed(false);
+                          }}
                           className={`h-full border border-dashed rounded px-3 flex items-center justify-center text-[10px] font-bold transition duration-200 ${
                             logoPasteModeArmed
                               ? "border-amber-500 bg-amber-50 text-amber-700 animate-pulse"
@@ -1202,70 +1328,73 @@ ${highlightsText}`;
                               </td>
 
                               {/* Current Value Column */}
-                              <td className="border-r border-black p-1 text-right text-xs font-bold w-[14%]">
+                              <td className="border-r border-black p-1 text-center text-xs font-bold w-[14%]">
                                 {isCapturing ? (
                                   <span className="px-2 py-1 block">
                                     {metric.current !== null
-                                      ? metric.current.toFixed(metric.decimals)
+                                      ? metric.current.toFixed(2)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
+                                    key={`${metric.id}_current_${metric.current}`}
                                     type="text"
                                     defaultValue={
-                                      metric.current === null ? "" : metric.current.toString()
+                                      metric.current === null ? "" : metric.current.toFixed(2)
                                     }
                                     onBlur={(e) =>
                                       handleMetricChange(metric.id, "current", e.target.value)
                                     }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-right font-bold text-slate-950 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                    className="w-full bg-transparent border-none outline-none text-center font-bold text-slate-950 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
 
                               {/* Previous Quarter Value Column */}
-                              <td className="border-r border-black p-1 text-right text-xs font-semibold text-slate-600 w-[14%]">
+                              <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
                                 {isCapturing ? (
                                   <span className="px-2 py-1 block">
                                     {metric.prev_q !== null
-                                      ? metric.prev_q.toFixed(metric.decimals)
+                                      ? metric.prev_q.toFixed(2)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
+                                    key={`${metric.id}_prev_q_${metric.prev_q}`}
                                     type="text"
                                     defaultValue={
-                                      metric.prev_q === null ? "" : metric.prev_q.toString()
+                                      metric.prev_q === null ? "" : metric.prev_q.toFixed(2)
                                     }
                                     onBlur={(e) =>
                                       handleMetricChange(metric.id, "prev_q", e.target.value)
                                     }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-right font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                    className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
 
                               {/* Previous Year Value Column */}
-                              <td className="border-r border-black p-1 text-right text-xs font-semibold text-slate-600 w-[14%]">
+                              <td className="border-r border-black p-1 text-center text-xs font-semibold text-slate-600 w-[14%]">
                                 {isCapturing ? (
                                   <span className="px-2 py-1 block">
                                     {metric.prev_y !== null
-                                      ? metric.prev_y.toFixed(metric.decimals)
+                                      ? metric.prev_y.toFixed(2)
                                       : "-"}
                                   </span>
                                 ) : (
                                   <input
+                                    key={`${metric.id}_prev_y_${metric.prev_y}`}
                                     type="text"
                                     defaultValue={
-                                      metric.prev_y === null ? "" : metric.prev_y.toString()
+                                      metric.prev_y === null ? "" : metric.prev_y.toFixed(2)
                                     }
                                     onBlur={(e) =>
                                       handleMetricChange(metric.id, "prev_y", e.target.value)
                                     }
                                     placeholder="-"
-                                    className="w-full bg-transparent border-none outline-none text-right font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
+                                    className="w-full bg-transparent border-none outline-none text-center font-semibold text-slate-600 focus:bg-slate-100 rounded px-2 py-1.5 focus:ring-1 focus:ring-slate-300"
                                   />
                                 )}
                               </td>
@@ -1284,6 +1413,11 @@ ${highlightsText}`;
                         })}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* 4. SEBI Regulatory Footer */}
+                  <div className="px-4 py-2 bg-slate-50 border-t border-black text-[10px] text-slate-500 font-mono text-center select-none">
+                    Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No. INP000006243
                   </div>
 
                   {/* 5. Footer Band */}
@@ -1384,15 +1518,27 @@ ${highlightsText}`;
 
                       {/* Add highlights point link */}
                       {!isCapturing && (
-                        <button
-                          onClick={() => setHighlights((prev) => [...prev, "New Highlight Point"])}
-                          style={{ color: colors.primary }}
-                          className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-slate-50 py-1.5 px-3 rounded-lg border border-slate-100 w-fit"
-                        >
-                          <Plus size={12} />
-                          + Add a highlight point
-                        </button>
+                        <div className="flex flex-col gap-2 pt-2">
+                          <button
+                            onClick={() => setHighlights((prev) => [...prev, "New Highlight Point"])}
+                            style={{ color: colors.primary }}
+                            className="flex items-center gap-1 text-xs font-bold hover:brightness-95 transition bg-white py-1.5 px-3 rounded-lg border border-slate-200 w-fit"
+                          >
+                            <Plus size={12} />
+                            + Add a highlight point
+                          </button>
+                          <span className="text-[10px] text-slate-400 italic font-normal">
+                            💡 Design Guideline: Keep each highlight to max 2-3 lines for optimal card presentation.
+                          </span>
+                        </div>
                       )}
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    {/* SEBI Regulatory Footer */}
+                    <div className="text-[10px] text-slate-400 font-mono text-center select-none">
+                      Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No. INP000006243
                     </div>
                   </div>
                 )}

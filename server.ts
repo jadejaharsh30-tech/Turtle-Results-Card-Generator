@@ -285,7 +285,7 @@ Write 4–5 highlights based on the confirmed numbers in the table and the provi
 Guidelines for the points:
 1. Ground every point in the confirmed table numbers and the provided source documents. Never invent or hallucinate figures.
 2. Tone: Plain, confident, investor-friendly English. Use Indian numbering formats where appropriate (e.g., ₹ crore or ₹ lakh crore, and percentage moves like %).
-3. Depth: Each point may run 2–3 lines. Do not force brevity; give the point room to explain the story behind the numbers (e.g. why revenue grew, asset quality improved, or margins expanded).
+3. Depth: Each point MUST be concise and strictly limited to a maximum of 2–3 lines (around 20–30 words) when formatted. Keep them crisp and direct, presenting key facts and figures without fluff.
 4. Content: Cover the most material items: growth in business/revenue/NII, profitability/margins, asset quality/NPAs, segment drivers, and notable operational strength.
 5. DIVIDEND REQUIREMENT: Scan every provided source document and pasted text for any DIVIDEND declared, recommended, or paid this quarter. 
    If a dividend exists, you MUST include a dedicated highlight point stating the amount per share, percentage (if given), and the record/payment date if provided.
@@ -310,7 +310,7 @@ The response must be raw JSON matching the schema. No markdown fences.`;
               type: Type.ARRAY,
               items: {
                 type: Type.STRING,
-                description: "A detailed key business highlight point (2-3 lines long) grounded in the source.",
+                description: "A concise key business highlight point (strictly max 2-3 lines long) grounded in the source.",
               },
             },
           },
