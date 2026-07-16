@@ -44,6 +44,7 @@ export default function App() {
   const [logoPasteModeArmed, setLogoPasteModeArmed] = useState(false);
   const [turtleLogo, setTurtleLogo] = useState<string | null>(null);
   const [turtleLogoPasteModeArmed, setTurtleLogoPasteModeArmed] = useState(false);
+  const [sebiRegNo, setSebiRegNo] = useState("INP000006243");
 
   // App flow states
   const [step, setStep] = useState<1 | 2>(1);
@@ -890,6 +891,21 @@ ${highlightsText}`;
                 </div>
               </div>
             </div>
+
+            {/* SEBI Registration Number */}
+            <div className="border border-slate-100 rounded-lg p-3 bg-slate-50/50 flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-slate-600 flex justify-between items-center">
+                <span>PMS SEBI Reg. No.</span>
+                <span className="text-[9px] text-slate-400 font-normal">Auto-syncs across both cards</span>
+              </label>
+              <input
+                type="text"
+                value={sebiRegNo}
+                onChange={(e) => setSebiRegNo(e.target.value)}
+                placeholder="e.g. INP000006243"
+                className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-slate-300 font-mono font-semibold text-slate-700"
+              />
+            </div>
           </div>
 
           <hr className="border-slate-100" />
@@ -1416,8 +1432,20 @@ ${highlightsText}`;
                   </div>
 
                   {/* 4. SEBI Regulatory Footer */}
-                  <div className="px-4 py-2 bg-slate-50 border-t border-black text-[10px] text-slate-500 font-mono text-center select-none">
-                    Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No. INP000006243
+                  <div className="px-4 py-2 bg-slate-50 border-t border-black text-[10px] text-slate-500 font-mono text-center select-none flex items-center justify-center gap-1.5 flex-wrap">
+                    <span>Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No.</span>
+                    {isCapturing ? (
+                      <span className="font-bold">{sebiRegNo}</span>
+                    ) : (
+                      <input
+                        type="text"
+                        value={sebiRegNo}
+                        onChange={(e) => setSebiRegNo(e.target.value)}
+                        className="bg-transparent border-b border-dashed border-slate-400 hover:border-slate-600 focus:border-slate-900 focus:outline-none px-1 text-center font-bold text-slate-700 w-32 inline-block transition-colors"
+                        placeholder="INP000006243"
+                        title="Click to edit PMS SEBI Reg. No."
+                      />
+                    )}
                   </div>
 
                   {/* 5. Footer Band */}
@@ -1458,13 +1486,30 @@ ${highlightsText}`;
                     </div>
 
                     {/* Score / Action Row */}
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Turtle Score — {score} / 3
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80 flex flex-col gap-2">
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Turtle Score — {score} / 3
+                        </div>
+                        <p className="text-xs font-semibold text-slate-700 mt-1">
+                          {getHoldStatement(score, fund)}
+                        </p>
                       </div>
-                      <p className="text-xs font-semibold text-slate-700 mt-1">
-                        {getHoldStatement(score, fund)}
-                      </p>
+                      <div className="text-[9px] text-slate-400 font-mono select-none border-t border-slate-200/60 pt-1.5 mt-0.5 flex items-center gap-1 flex-wrap">
+                        <span>Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No.</span>
+                        {isCapturing ? (
+                          <span className="font-bold">{sebiRegNo}</span>
+                        ) : (
+                          <input
+                            type="text"
+                            value={sebiRegNo}
+                            onChange={(e) => setSebiRegNo(e.target.value)}
+                            className="bg-transparent border-b border-dashed border-slate-300 hover:border-slate-400 focus:border-slate-600 focus:outline-none px-1 font-bold text-slate-500 w-28 inline-block transition-colors"
+                            placeholder="INP000006243"
+                            title="Click to edit PMS SEBI Reg. No."
+                          />
+                        )}
+                      </div>
                     </div>
 
                     <hr className="border-slate-100" />
@@ -1534,12 +1579,6 @@ ${highlightsText}`;
                       )}
                     </div>
 
-                    <hr className="border-slate-100" />
-
-                    {/* SEBI Regulatory Footer */}
-                    <div className="text-[10px] text-slate-400 font-mono text-center select-none">
-                      Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No. INP000006243
-                    </div>
                   </div>
                 )}
 
