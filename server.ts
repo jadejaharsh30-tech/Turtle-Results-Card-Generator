@@ -289,11 +289,12 @@ Guidelines for the points:
 4. Content: Cover the most material items: growth in business/revenue/NII, profitability/margins, asset quality/NPAs, segment drivers, and notable operational strength.
 5. DIVIDEND REQUIREMENT: Scan every provided source document and pasted text for any DIVIDEND declared, recommended, or paid this quarter. 
    If a dividend exists, you MUST include a dedicated highlight point stating the amount per share, percentage (if given), and the record/payment date if provided.
+6. STRICTION: DO NOT include any general recommendation lines, buy/sell/hold ratings, or statements like "Based on Turtle score we remain Confident and Continue to Hold..." or "Continue to Hold in Our..." or "Based on the Turtle Score we are Reviewing...". These are already shown elsewhere. Only focus on business and financial highlights.
 
 The response must be raw JSON matching the schema. No markdown fences.`;
 
     contents.push({
-      text: `Generate 4 to 5 key highlights. Fund name is "${fund}". Turtle Score statement is: "${scoreText}".`
+      text: `Generate 4 to 5 key highlights. Fund name is "${fund}".`
     });
 
     // Make Gemini API call

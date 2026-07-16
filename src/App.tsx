@@ -11,6 +11,8 @@ import {
   Image as ImageIcon,
   Loader2,
   File,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Metric, TableData, Screenshot, SourcesState, FundType } from "./types";
 import {
@@ -229,7 +231,18 @@ export default function App() {
         throw new Error(data.error || "Failed to generate commentary");
       }
 
-      setHighlights(data.highlights || []);
+      const rawHighlights = data.highlights || [];
+      const filteredHighlights = rawHighlights.filter((h: string) => {
+        const lower = h.toLowerCase();
+        return (
+          !lower.includes("based on turtle score") &&
+          !lower.includes("based on the turtle score") &&
+          !lower.includes("continue to hold") &&
+          !lower.includes("actively seeking new opportunities") &&
+          !lower.includes("reviewing the company")
+        );
+      });
+      setHighlights(filteredHighlights);
       setStep(2); // Advance to step 2 view
     } catch (err: any) {
       setError(err.message || "Failed to write highlight points.");
@@ -314,6 +327,22 @@ export default function App() {
     setTableData({
       ...tableData,
       metrics: [...tableData.metrics, newMetric],
+    });
+  };
+
+  const moveMetric = (index: number, direction: "up" | "down") => {
+    if (!tableData) return;
+    const newMetrics = [...tableData.metrics];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newMetrics.length) return;
+
+    const temp = newMetrics[index];
+    newMetrics[index] = newMetrics[targetIndex];
+    newMetrics[targetIndex] = temp;
+
+    setTableData({
+      ...tableData,
+      metrics: newMetrics,
     });
   };
 
@@ -1261,7 +1290,7 @@ ${highlightsText}`;
                         </tr>
                       </thead>
                       <tbody>
-                        {tableData.metrics.map((metric) => {
+                        {tableData.metrics.map((metric, index) => {
                           const qoq = computeChange(metric.current, metric.prev_q, metric.is_ratio);
                           const yoy = computeChange(metric.current, metric.prev_y, metric.is_ratio);
 
@@ -1285,7 +1314,7 @@ ${highlightsText}`;
                           return (
                             <tr
                               key={metric.id}
-                              className="border-b border-black last:border-b-0 hover:bg-slate-50/50 transition group"
+                              className="border-b border-black last:border-b-0 hover:bg-slate-50/50 transition group/row"
                             >
                               {/* Label Column with customizable ratio/direction badges */}
                               <td className="border-r border-black p-2 text-xs font-medium text-slate-900 flex justify-between items-center gap-2">
@@ -1293,9 +1322,39 @@ ${highlightsText}`;
                                   <span className="font-semibold">{metric.label}</span>
                                 ) : (
                                   <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
+                                    {/* Rearrange order controls */}
+                                    <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover/row:opacity-100 transition duration-150">
+                                      <button
+                                        type="button"
+                                        onClick={() => moveMetric(index, "up")}
+                                        disabled={index === 0}
+                                        className={`p-0.5 rounded transition ${
+                                          index === 0
+                                            ? "text-slate-200 cursor-not-allowed"
+                                            : "text-slate-400 hover:text-slate-800 hover:bg-slate-100"
+                                        }`}
+                                        title="Move Up"
+                                      >
+                                        <ChevronUp size={11} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => moveMetric(index, "down")}
+                                        disabled={index === tableData.metrics.length - 1}
+                                        className={`p-0.5 rounded transition ${
+                                          index === tableData.metrics.length - 1
+                                            ? "text-slate-200 cursor-not-allowed"
+                                            : "text-slate-400 hover:text-slate-800 hover:bg-slate-100"
+                                        }`}
+                                        title="Move Down"
+                                      >
+                                        <ChevronDown size={11} />
+                                      </button>
+                                    </div>
+
                                     <button
                                       onClick={() => deleteMetricRow(metric.id)}
-                                      className="text-red-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100 shrink-0"
+                                      className="text-red-400 hover:text-red-600 transition opacity-0 group-hover/row:opacity-100 shrink-0"
                                       title="Delete metric"
                                     >
                                       <X size={12} />
@@ -1486,30 +1545,13 @@ ${highlightsText}`;
                     </div>
 
                     {/* Score / Action Row */}
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80 flex flex-col gap-2">
-                      <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Turtle Score — {score} / 3
-                        </div>
-                        <p className="text-xs font-semibold text-slate-700 mt-1">
-                          {getHoldStatement(score, fund)}
-                        </p>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Turtle Score — {score} / 3
                       </div>
-                      <div className="text-[9px] text-slate-400 font-mono select-none border-t border-slate-200/60 pt-1.5 mt-0.5 flex items-center gap-1 flex-wrap">
-                        <span>Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No.</span>
-                        {isCapturing ? (
-                          <span className="font-bold">{sebiRegNo}</span>
-                        ) : (
-                          <input
-                            type="text"
-                            value={sebiRegNo}
-                            onChange={(e) => setSebiRegNo(e.target.value)}
-                            className="bg-transparent border-b border-dashed border-slate-300 hover:border-slate-400 focus:border-slate-600 focus:outline-none px-1 font-bold text-slate-500 w-28 inline-block transition-colors"
-                            placeholder="INP000006243"
-                            title="Click to edit PMS SEBI Reg. No."
-                          />
-                        )}
-                      </div>
+                      <p className="text-xs font-semibold text-slate-700 mt-1">
+                        {getHoldStatement(score, fund)}
+                      </p>
                     </div>
 
                     <hr className="border-slate-100" />
@@ -1576,6 +1618,25 @@ ${highlightsText}`;
                             💡 Design Guideline: Keep each highlight to max 2-3 lines for optimal card presentation.
                           </span>
                         </div>
+                      )}
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    {/* SEBI Regulatory Footer */}
+                    <div className="text-[10px] text-slate-400 font-mono text-center select-none flex items-center justify-center gap-1.5 flex-wrap pt-1">
+                      <span>Turtle Wealth Management Pvt. Ltd. | PMS SEBI Reg. No.</span>
+                      {isCapturing ? (
+                        <span className="font-bold text-slate-500">{sebiRegNo}</span>
+                      ) : (
+                        <input
+                          type="text"
+                          value={sebiRegNo}
+                          onChange={(e) => setSebiRegNo(e.target.value)}
+                          className="bg-transparent border-b border-dashed border-slate-300 hover:border-slate-400 focus:border-slate-500 focus:outline-none px-1 text-center font-bold text-slate-500 w-32 inline-block transition-colors"
+                          placeholder="INP000006243"
+                          title="Click to edit PMS SEBI Reg. No."
+                        />
                       )}
                     </div>
 
