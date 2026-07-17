@@ -118,12 +118,18 @@ Guidelines for metric extraction:
    - "is_merged": true
    - "merged_value": The full description/amount of the dividend declared or paid (e.g., "Interim dividend of ₹ 2.50 per equity share (125%) for FY24" or "Final Dividend of ₹ 5 / share declared").
    If no dividend is paid or mentioned, do NOT include this line item.
-4. All standard metric values (except Dividend/merged items) should be plain numbers. Strip commas, currency symbols, and percent signs.
-5. For ratios and percentage metrics (e.g. NPA ratios, margins), set "is_ratio" to true, and set "decimals" to 2.
-6. If a metric is a ratio where a lower value is better (like Gross NPA %, Net NPA %, Cost-to-Income %, Debt-to-Equity), set "lower_is_better" to true. For general revenue, profit, margins, set "lower_is_better" to false.
-7. For non-percentage rupee metrics, set "is_ratio" to false, and set "decimals" to 0.
-8. If a value is not available in a column (e.g., previous quarter was not reported), use null.
-9. NEVER invent or hallucinate figures. If a metric is missing, use null or omit it.
+4. MANDATORY VALUE CONVERSION TO CRORES:
+   - Look closely at the reported unit in the screenshot or documents (e.g., in Millions or in Lakhs).
+   - If values are reported in Millions (Mn), you MUST divide the value by 10 to convert it to Crore (e.g., 230 Million = 23.00 Crore).
+   - If values are reported in Lakhs, you MUST divide the value by 100 to convert it to Crore (e.g., 4500 Lakhs = 45.00 Crore).
+   - All standard non-percentage/non-ratio numbers in the returned "metrics" array MUST be converted to and stored in Crores.
+   - Set the output "unit" property to "₹ CR.".
+5. All standard metric values (except Dividend/merged items) should be plain numbers representing the converted Crore value. Strip commas, currency symbols, and percent signs.
+6. For ratios and percentage metrics (e.g. NPA ratios, margins), set "is_ratio" to true, and set "decimals" to 2.
+7. If a metric is a ratio where a lower value is better (like Gross NPA %, Net NPA %, Cost-to-Income %, Debt-to-Equity), set "lower_is_better" to true. For general revenue, profit, margins, set "lower_is_better" to false.
+8. For non-percentage rupee metrics, set "is_ratio" to false, and set "decimals" to 0 (or 2 if they have fraction parts after division to Crores).
+9. If a value is not available in a column (e.g., previous quarter was not reported), use null.
+10. NEVER invent or hallucinate figures. If a metric is missing, use null or omit it.
 
 Respond strictly in JSON matching the specified schema. No markdown fences, no wrapping, just raw JSON.`;
 
@@ -302,12 +308,15 @@ You must respond ONLY with raw JSON matching the required schema.
 Write 4–5 highlights based on the confirmed numbers in the table and the provided source documents.
 Guidelines for the points:
 1. Ground every point in the confirmed table numbers and the provided source documents. Never invent or hallucinate figures.
-2. Tone: Plain, confident, investor-friendly English. Use Indian numbering formats where appropriate (e.g., ₹ crore or ₹ lakh crore, and percentage moves like %).
-3. Depth: Each point MUST be concise and strictly limited to a maximum of 2–3 lines (around 20–30 words) when formatted. Keep them crisp and direct, presenting key facts and figures without fluff.
-4. Content: Cover the most material items: growth in business/revenue/NII, profitability/margins, asset quality/NPAs, segment drivers, and notable operational strength.
-5. DIVIDEND REQUIREMENT: Scan every provided source document and pasted text for any DIVIDEND declared, recommended, or paid this quarter. 
+2. MANDATORY VALUE CONVERSION TO CRORES:
+   - When writing the highlights, if any figure from the source documents is in millions (Mn) or lakhs (Lakhs), you MUST convert it to Crore (Cr.).
+   - Do NOT mention "million", "Mn", "lakhs", or "Lakh" in your highlights. Always convert them and write them in Crore (Cr.) (e.g., instead of "Revenue of 150 Million" write "Revenue of ₹15.00 Crore"; instead of "Profit of 200 Lakhs" write "Profit of ₹2.00 Crore").
+3. Tone: Plain, confident, investor-friendly English. Use Indian numbering formats where appropriate (e.g., ₹ crore or ₹ lakh crore, and percentage moves like %).
+4. Depth: Each point MUST be concise and strictly limited to a maximum of 2–3 lines (around 20–30 words) when formatted. Keep them crisp and direct, presenting key facts and figures without fluff.
+5. Content: Cover the most material items: growth in business/revenue/NII, profitability/margins, asset quality/NPAs, segment drivers, and notable operational strength.
+6. DIVIDEND REQUIREMENT: Scan every provided source document and pasted text for any DIVIDEND declared, recommended, or paid this quarter. 
    If a dividend exists, you MUST include a dedicated highlight point stating the amount per share, percentage (if given), and the record/payment date if provided.
-6. STRICTION: DO NOT include any general recommendation lines, buy/sell/hold ratings, or statements like "Based on Turtle score we remain Confident and Continue to Hold..." or "Continue to Hold in Our..." or "Based on the Turtle Score we are Reviewing...". These are already shown elsewhere. Only focus on business and financial highlights.
+7. STRICTION: DO NOT include any general recommendation lines, buy/sell/hold ratings, or statements like "Based on Turtle score we remain Confident and Continue to Hold..." or "Continue to Hold in Our..." or "Based on the Turtle Score we are Reviewing...". These are already shown elsewhere. Only focus on business and financial highlights.
 
 The response must be raw JSON matching the schema. No markdown fences.`;
 

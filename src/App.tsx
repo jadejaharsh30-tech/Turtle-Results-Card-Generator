@@ -667,8 +667,8 @@ ${highlightsText}`;
                   onChange={(e) => setFund(e.target.value as FundType)}
                   className="w-full text-sm font-medium border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-400"
                 >
-                  <option value="Growth Mantra">Growth Mantra (Teal)</option>
-                  <option value="Wealth Mantra">Wealth Mantra (Deep Red)</option>
+                  <option value="Growth Mantra">Growth Mantra</option>
+                  <option value="Wealth Mantra">Wealth Mantra</option>
                 </select>
               </div>
 
@@ -1703,7 +1703,7 @@ ${highlightsText}`;
                     {/* Score / Action Row */}
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/80">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Turtle Score — {score} / 3
+                        Turtle Score — {score}
                       </div>
                       <p className="text-xs font-semibold text-slate-700 mt-1">
                         {getHoldStatement(score, fund)}
